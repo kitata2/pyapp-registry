@@ -32,6 +32,54 @@ Then open `http://localhost:8500` (or expose the registry itself via Tailscale).
 loginctl enable-linger $USER
 ```
 
+## Run PyApp Registry as an Auto-Start Service
+
+To keep the registry itself running in the background and start automatically on boot:
+
+```bash
+mkdir -p ~/.config/systemd/user
+
+cat > ~/.config/systemd/user/pyapp-registry.service << 'EOF'
+[Unit]
+Description=PyApp Registry (Streamlit)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/myworks/pyapp-registry
+ExecStart=/usr/bin/env uv run streamlit run app_registry.py --server.port 8500 --server.address 0.0.0.0
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target
+EOF
+
+# Adjust WorkingDirectory above if your clone is in a different path.
+# If `uv` is not in the default PATH for systemd, replace `/usr/bin/env uv` with the full path (`which uv`).
+
+systemctl --user daemon-reload
+systemctl --user enable --now pyapp-registry.service
+```
+
+### Check status and logs
+
+```bash
+systemctl --user status pyapp-registry.service
+journalctl --user -u pyapp-registry.service -f
+```
+
+### Optional: expose via Tailscale
+
+```bash
+tailscale serve --bg --set-path=/registry 8500
+# or
+tailscale serve --bg 8500
+```
+
+After this the registry will start on boot, restart on failure, and stay running when you log out.
+
 ## Typical Workflow
 
 1. Open the **Add / Edit App** tab.
