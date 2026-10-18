@@ -1,0 +1,17 @@
+[project]
+name = "app-registry"
+version = "0.1.0"
+description = "Web UI to inventory and manage Python apps on a Linux VPS with systemd + Tailscale"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "streamlit",
+    "psutil",
+]
+
+[project.scripts]
+app-registry = "app_registry:main"
+
+[build-system]
+requires = ["uv_build>=0.12.19,<0.13.0"]
+build-backend = "uv_build"
